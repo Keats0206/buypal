@@ -75,6 +75,16 @@ const tools = {
   askForConfirmation: askForConfirmationTool,
   // client-side tool that is automatically executed on the client:
   getLocation: getLocationTool,
+
+  web_search_preview: openai.tools.webSearchPreview({
+    searchContextSize: 'high',
+    userLocation: {
+      type: 'approximate',
+      city: 'New York',
+      region: 'New York',
+      country: 'US',
+    },
+  }),
 } as const;
 
 export type UseChatToolsMessage = UIMessage<

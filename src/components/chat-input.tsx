@@ -13,6 +13,7 @@ export default function ChatInput({
 
   return (
     <form
+      className="flex gap-2"
       onSubmit={e => {
         e.preventDefault();
         if (text.trim() === '') return;
@@ -21,16 +22,16 @@ export default function ChatInput({
       }}
     >
       <input
-        className="fixed bottom-0 w-full max-w-md p-2 mb-8 border border-gray-300 rounded shadow-xl"
-        placeholder="Say something..."
+        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        placeholder="Type your message..."
         disabled={status !== 'ready'}
         value={text}
         onChange={e => setText(e.target.value)}
       />
       {stop && (status === 'streaming' || status === 'submitted') && (
         <button
-          className="fixed bottom-0 w-full max-w-md p-2 mb-8 border border-gray-300 rounded shadow-xl"
-          type="submit"
+          className="ml-2 px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+          type="button"
           onClick={stop}
         >
           Stop

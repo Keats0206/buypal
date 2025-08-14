@@ -7,8 +7,12 @@ import {
   lastAssistantMessageIsCompleteWithToolCalls,
 } from 'ai';
 import { UseChatToolsMessage } from '@/app/api/chat/route';
+import ReactMarkdown from 'react-markdown';
+import { useEffect, useRef } from 'react';
 
 export default function Chat() {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
   const { messages, sendMessage, addToolResult, status } =
     useChat<UseChatToolsMessage>({
       transport: new DefaultChatTransport({ api: '/api/chat' }),
@@ -36,15 +40,29 @@ export default function Chat() {
       },
     });
 
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
   return (
-    <div className="flex flex-col py-24 mx-auto w-full max-w-md stretch">
-      {messages?.map(message => (
-        <div key={message.id} className="whitespace-pre-wrap">
-          <strong>{`${message.role}: `}</strong>
+    <div className="flex flex-col h-screen max-w-4xl mx-auto bg-white">
+      {/* Messages Area - Scrollable */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages?.map(message => (
+          <div key={message.id} className="mb-4">
+            <div className="font-semibold text-sm text-gray-600 mb-2">
+              {message.role === 'user' ? 'You' : 'Assistant'}
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4">
           {message.parts.map((part, index) => {
             switch (part.type) {
               case 'text':
-                return <div key={index}>{part.text}</div>;
+                return (
+                  <div key={index} className="prose prose-sm max-w-none">
+                    <ReactMarkdown>{part.text}</ReactMarkdown>
+                  </div>
+                );
 
               case 'step-start':
                 return index > 0 ? (
@@ -59,7 +77,7 @@ export default function Chat() {
                     return (
                       <div key={index} className="text-gray-500">
                         {part.input.message}
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 mt-2">
                           <button
                             className="px-4 py-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700"
                             onClick={async () => {
@@ -120,7 +138,7 @@ export default function Chat() {
                   // example of pre-rendering streaming tool calls:
                   case 'input-streaming':
                     return (
-                      <pre key={index}>
+                      <pre key={index} className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
                         {JSON.stringify(part.input, null, 2)}
                       </pre>
                     );
@@ -145,14 +163,45 @@ export default function Chat() {
                       </div>
                     );
                 }
+                break;
+              }
+
+              case 'tool-web_search_preview': {
+                if (part.state === 'input-available') {
+                  return (
+                    <pre
+                      key={index}
+                      className="overflow-auto p-2 text-sm bg-gray-100 rounded"
+                    >
+                      {JSON.stringify(part.input, null, 2)}
+                    </pre>
+                  );
+                }
+                if (part.state === 'output-available') {
+                  return (
+                    <pre
+                      key={index}
+                      className="overflow-auto p-2 text-sm bg-gray-100 rounded"
+                    >
+                      {JSON.stringify(part.input, null, 2)}
+                      {`\n\nDONE - Web search completed`}
+                    </pre>
+                  );
+                }
               }
             }
           })}
-          <br />
-        </div>
-      ))}
+            </div>
+          </div>
+        ))}
+        {/* Scroll anchor */}
+        <div ref={messagesEndRef} />
+      </div>
 
-      <ChatInput status={status} onSubmit={text => sendMessage({ text })} />
+      {/* Input Area - Fixed at bottom */}
+      <div className="border-t bg-white p-4">
+        <ChatInput status={status} onSubmit={text => sendMessage({ text })} />
+      </div>
     </div>
   );
 }
