@@ -30,17 +30,13 @@ export async function POST(request: NextRequest) {
       environment: process.env.RYE_ENVIRONMENT as 'staging' | 'production' || 'staging',
     });
 
-    // For demo purposes, we'll use the test token approach as mentioned in the requirements
-    // In a real implementation, you would integrate with Stripe to create a payment intent
-    // and then use the payment method to confirm it
-
     // Confirm checkout intent with payment method
     const confirmedIntent = await ryeClient.confirmCheckoutIntent(
       body.checkoutIntentId,
       {
         paymentMethod: {
           type: 'stripe_token',
-          stripeToken: body.paymentMethodId, //'tok_visa', // Using test token as specified in requirements
+          stripeToken: body.paymentMethodId, // 'tok_visa', // You can use tok_visa for testing if tokenization isn't setup, yet.
         },
       }
     );

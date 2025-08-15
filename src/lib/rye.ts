@@ -31,7 +31,6 @@ export interface CheckoutIntent {
   status: string;
   createdAt: string;
   updatedAt: string;
-  // Add other fields as needed based on Rye API response
 }
 
 export interface ConfirmCheckoutIntentRequest {
@@ -39,7 +38,6 @@ export interface ConfirmCheckoutIntentRequest {
     type: string;
     stripeToken: string;
   };
-  // Add other confirmation fields as needed
 }
 
 export class RyeClient {

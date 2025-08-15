@@ -28,6 +28,7 @@ export default function ChatInput({
         value={text}
         onChange={e => setText(e.target.value)}
         rows={3}
+        cols={50}
         onKeyDown={e => {
           if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();

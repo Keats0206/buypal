@@ -134,7 +134,7 @@ const searchAmazonProductsTool = tool({
   description: 'Search for products on Amazon and return structured product information including images, titles, prices, and URLs for display in a product catalog',
   inputSchema: z.object({
     query: z.string().describe('The search query for Amazon products (e.g., "wireless headphones", "laptop", "coffee maker")'),
-    maxResults: z.number().min(1).max(10).default(5).describe('Maximum number of products to return (1-10, default: 5)')
+    maxResults: z.number().min(1).max(10).default(3).describe('Maximum number of products to return (1-10, default: 3)')
   }),
   async *execute({ query, maxResults = 5 }) {
     yield { state: 'loading' as const };
@@ -174,6 +174,7 @@ const searchAmazonProductsTool = tool({
 const tools = {
   // client-side tool that starts user interaction:
   askForConfirmation: askForConfirmationTool,
+
   // client-side tool that is automatically executed on the client:
   getLocation: getLocationTool,
 
@@ -207,7 +208,7 @@ export async function POST(req: Request) {
   });
 
   return result.toUIMessageStreamResponse({
-    //  originalMessages: messages, //add if you want to have correct ids
+    originalMessages: messages, // maintains correct message IDs and conversation history
     onFinish: options => {
       console.log('onFinish', options);
     },

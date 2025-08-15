@@ -69,7 +69,7 @@ export default function Chat() {
   };
 
   return (
-    <div className="flex flex-col h-screen max-w-6xl mx-auto bg-white">
+    <div className="flex flex-col h-screen max-w-6xl bg-white">
       {/* Messages Area - Scrollable */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages?.map(message => (
