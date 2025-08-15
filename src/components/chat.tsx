@@ -1,6 +1,7 @@
 'use client';
 
 import ChatInput from '@/components/chat-input';
+import CheckoutModal from '@/components/checkout-modal';
 import { useChat } from '@ai-sdk/react';
 import {
   DefaultChatTransport,
@@ -8,11 +9,18 @@ import {
 } from 'ai';
 import { UseChatToolsMessage } from '@/app/api/chat/route';
 import ReactMarkdown from 'react-markdown';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 
 export default function Chat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [checkoutModal, setCheckoutModal] = useState<{
+    isOpen: boolean;
+    product: any | null;
+  }>({
+    isOpen: false,
+    product: null,
+  });
 
   const { messages, sendMessage, addToolResult, status } =
     useChat<UseChatToolsMessage>({
@@ -46,8 +54,22 @@ export default function Chat() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const handleBuyProduct = (product: any) => {
+    setCheckoutModal({
+      isOpen: true,
+      product,
+    });
+  };
+
+  const handleCloseCheckout = () => {
+    setCheckoutModal({
+      isOpen: false,
+      product: null,
+    });
+  };
+
   return (
-    <div className="flex flex-col h-screen max-w-4xl mx-auto bg-white">
+    <div className="flex flex-col h-screen max-w-6xl mx-auto bg-white">
       {/* Messages Area - Scrollable */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages?.map(message => (
@@ -184,7 +206,7 @@ export default function Chat() {
                       key={index}
                       className="overflow-auto p-2 text-sm bg-gray-100 rounded"
                     >
-                      {JSON.stringify(part.input, null, 2)}
+                      {JSON.stringify(part, null, 2)}
                       {`\n\nDONE - Web search completed`}
                     </pre>
                   );
@@ -253,16 +275,12 @@ export default function Chat() {
                                       </span>
                                     )}
                                   </div>
-                                  {product.url && product.url !== 'URL not found' && (
-                                    <a
-                                      href={product.url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="inline-block w-full text-center bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded transition-colors text-sm font-medium"
-                                    >
-                                      View on Amazon
-                                    </a>
-                                  )}
+                                  <button
+                                    onClick={() => handleBuyProduct(product)}
+                                    className="inline-block w-full text-center bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded transition-colors text-sm font-medium"
+                                  >
+                                    Buy Now
+                                  </button>
                                 </div>
                               </div>
                             ))}
@@ -290,9 +308,18 @@ export default function Chat() {
       </div>
 
       {/* Input Area - Fixed at bottom */}
-      <div className="border-t bg-white p-4">
-        <ChatInput status={status} onSubmit={text => sendMessage({ text })} />
+      <div className="border-t bg-white p-6">
+        <div className="max-w-5xl mx-auto">
+          <ChatInput status={status} onSubmit={text => sendMessage({ text })} />
+        </div>
       </div>
+
+      {/* Checkout Modal */}
+      <CheckoutModal
+        isOpen={checkoutModal.isOpen}
+        onClose={handleCloseCheckout}
+        product={checkoutModal.product}
+      />
     </div>
   );
 }

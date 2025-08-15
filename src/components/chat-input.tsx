@@ -21,12 +21,21 @@ export default function ChatInput({
         setText('');
       }}
     >
-      <input
-        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      <textarea
+        className="w-full min-h-[80px] p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
         placeholder="Type your message..."
         disabled={status !== 'ready'}
         value={text}
         onChange={e => setText(e.target.value)}
+        rows={3}
+        onKeyDown={e => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            if (text.trim() === '') return;
+            onSubmit(text);
+            setText('');
+          }
+        }}
       />
       {stop && (status === 'streaming' || status === 'submitted') && (
         <button

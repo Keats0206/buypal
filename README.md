@@ -1,26 +1,64 @@
-# WIP
+# Rye AI Chatbot
 
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) and designed to be fun and easy to get your hands dirty with the AI SDK.
+This is a [Next.js](https://nextjs.org/) project that combines AI-powered chat with e-commerce functionality. Users can search for Amazon products through natural language and purchase them directly through an integrated checkout flow powered by Rye and Stripe.
+
+## Features
+
+- **AI-Powered Chat**: Natural language interface for product discovery
+- **Amazon Product Search**: Real-time product search with images, prices, and ratings
+- **Integrated Checkout**: Complete purchase flow with buyer information collection
+- **Stripe Payment Processing**: Secure card payment handling with Stripe Elements
+- **Rye Integration**: Backend order processing and fulfillment through Amazon
+
+## Environment Variables
+
+Create a `.env.local` file with the following variables:
+
+```env
+# OpenAI API Key
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Rye API Configuration
+RYE_API_KEY=your_rye_api_key_here
+RYE_ENVIRONMENT=staging
+
+# Stripe Configuration
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key_here
+STRIPE_SECRET_KEY=your_stripe_secret_key_here
+```
 
 ## Getting Started
 
-First, run the development server:
+First, install dependencies and run the development server:
 
 ```bash
+npm install
 npm run dev
 # or
-yarn dev
+yarn install && yarn dev
 # or
-pnpm dev
-# or
-bun dev
+pnpm install && pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## How It Works
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+1. **Product Discovery**: Users can ask the AI to search for products using natural language (e.g., "Find me wireless headphones under $100")
+2. **Product Display**: The AI searches Amazon and displays products with images, prices, ratings, and a "Buy Now" button
+3. **Checkout Flow**: Clicking "Buy Now" opens a modal with:
+   - Buyer information form (name, address, contact details)
+   - Stripe payment form with card input
+4. **Order Processing**: The system creates a Rye checkout intent and processes payment through Stripe
+5. **Fulfillment**: Orders are sent to Amazon for fulfillment on behalf of the user
+
+## Architecture
+
+- **Frontend**: Next.js with React, Tailwind CSS, and Stripe Elements
+- **Backend**: Next.js API routes for checkout processing
+- **AI**: OpenAI GPT for natural language processing
+- **E-commerce**: Rye API for Amazon product access and order fulfillment
+- **Payments**: Stripe for secure payment processing
 
 ## Learn More
 
