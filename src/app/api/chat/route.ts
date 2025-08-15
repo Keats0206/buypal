@@ -224,11 +224,9 @@ const tools = {
   searchAmazonProducts: searchAmazonProductsTool,
 
   web_search_preview: openai.tools.webSearchPreview({
-    searchContextSize: 'high',
+    searchContextSize: 'low',
     userLocation: {
       type: 'approximate',
-      city: 'New York',
-      region: 'New York',
       country: 'US',
     },
   }),
