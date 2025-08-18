@@ -127,22 +127,14 @@ function CheckoutForm({ product, onClose }: { product: Product; onClose: () => v
 
     try {
       // Create payment method
-      const { error: stripeError, paymentMethod } = await stripe.createPaymentMethod({
-        type: 'card',
-        card: cardElement,
-        billing_details: {
-          name: `${buyerInfo.firstName} ${buyerInfo.lastName}`,
-          email: buyerInfo.email,
-          phone: buyerInfo.phone,
-          address: {
-            line1: buyerInfo.address1,
-            line2: buyerInfo.address2,
-            city: buyerInfo.city,
-            state: buyerInfo.province,
-            postal_code: buyerInfo.postalCode,
-            country: buyerInfo.country,
-          },
-        },
+      const { error: stripeError, token } = await stripe.createToken(cardElement, {
+        name: `${buyerInfo.firstName} ${buyerInfo.lastName}`,
+        address_line1: buyerInfo.address1,
+        address_line2: buyerInfo.address2,
+        address_city: buyerInfo.city,
+        address_state: buyerInfo.province,
+        address_zip: buyerInfo.postalCode,
+        address_country: buyerInfo.country,
       });
 
       if (stripeError) {
@@ -157,7 +149,7 @@ function CheckoutForm({ product, onClose }: { product: Product; onClose: () => v
         },
         body: JSON.stringify({
           checkoutIntentId,
-          paymentMethodId: paymentMethod.id,
+          paymentMethodId: token.id,
         }),
       });
 
@@ -168,13 +160,29 @@ function CheckoutForm({ product, onClose }: { product: Product; onClose: () => v
       const result = await response.json();
 
       // Success! Close modal and show success message
-      alert('Order placed successfully! You will receive a confirmation email shortly.');
-      onClose();
+      console.log('result', result);
+
+      // add message that says "placing order..." then poll the GET checkout-intent endpoint every second until it's either successful or failed.
+      const pollCheckoutIntent = async () => {
+        const response = await fetch(`/api/checkout/get-intent?checkoutIntentId=${checkoutIntentId}`);
+        const { checkoutIntent} = await response.json();
+        if (checkoutIntent.state == 'completed') {
+          alert('Order placed successfully! You will receive a confirmation email shortly.');
+          onClose();
+          setLoading(false);
+        } else if (checkoutIntent.state == 'failed') {
+          alert('Order failed. Please try again.');
+          onClose();
+          setLoading(false);
+        } else if (checkoutIntent.state == 'placing_order') {
+          console.log("Still placing order...");
+          setTimeout(pollCheckoutIntent, 1000);
+        }
+      };
+      pollCheckoutIntent();
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Payment failed');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -339,7 +347,7 @@ function CheckoutForm({ product, onClose }: { product: Product; onClose: () => v
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors"
             >
               {loading ? 'Processing...' : 'Continue to Payment'}
             </button>

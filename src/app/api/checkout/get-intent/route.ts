@@ -1,19 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createRyeClient } from '@/lib/rye';
 
-interface ConfirmIntentRequest {
-  checkoutIntentId: string;
-  paymentMethodId: string;
-}
-
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const body: ConfirmIntentRequest = await request.json();
+    const { searchParams } = new URL(request.url);
+    const checkoutIntentId = searchParams.get('checkoutIntentId');
 
     // Validate required fields
-    if (!body.checkoutIntentId || !body.paymentMethodId) {
+    if (!checkoutIntentId) {
       return NextResponse.json(
-        { error: 'Missing required fields: checkoutIntentId and paymentMethodId are required' },
+        { error: 'Missing required parameter: checkoutIntentId' },
         { status: 400 }
       );
     }
@@ -30,28 +26,20 @@ export async function POST(request: NextRequest) {
       environment: process.env.RYE_ENVIRONMENT as 'staging' | 'production' || 'staging',
     });
 
-    // Confirm checkout intent with payment method
-    const confirmedIntent = await ryeClient.confirmCheckoutIntent(
-      body.checkoutIntentId,
-      {
-        paymentMethod: {
-          type: 'stripe_token',
-          stripeToken: body.paymentMethodId, // 'tok_visa', // You can use tok_visa for testing if tokenization isn't setup, yet.
-        },
-      }
-    );
+    // Get checkout intent
+    const checkoutIntent = await ryeClient.getCheckoutIntent(checkoutIntentId);
 
     return NextResponse.json({
       success: true,
-      checkoutIntent: confirmedIntent,
+      checkoutIntent,
     });
 
   } catch (error) {
-    console.error('Error confirming checkout intent:', error);
+    console.error('Error fetching checkout intent:', error);
 
     return NextResponse.json(
       {
-        error: 'Failed to confirm payment',
+        error: 'Failed to fetch checkout intent',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }

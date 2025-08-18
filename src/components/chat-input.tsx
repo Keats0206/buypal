@@ -3,11 +3,9 @@ import { useState } from 'react';
 export default function ChatInput({
   status,
   onSubmit,
-  stop,
 }: {
   status: string;
   onSubmit: (text: string) => void;
-  stop?: () => void;
 }) {
   const [text, setText] = useState('');
 
@@ -22,7 +20,7 @@ export default function ChatInput({
       }}
     >
       <textarea
-        className="w-full min-h-[80px] p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+        className="w-full min-h-[80px] p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e6ffb7] focus:border-transparent resize-none"
         placeholder="Type your message..."
         disabled={status !== 'ready'}
         value={text}
@@ -38,15 +36,6 @@ export default function ChatInput({
           }
         }}
       />
-      {stop && (status === 'streaming' || status === 'submitted') && (
-        <button
-          className="ml-2 px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
-          type="button"
-          onClick={stop}
-        >
-          Stop
-        </button>
-      )}
     </form>
   );
 }
