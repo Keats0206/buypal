@@ -1,7 +1,7 @@
-export interface AmazonProduct {
+export interface ShoppingProduct {
   name: string;
   price: string;
-  image_url: string;
+  imageUrl: string;
   rating: string;
   url: string;
 }

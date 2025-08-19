@@ -1,7 +1,6 @@
 import { UseChatToolsMessage } from '@/app/api/chat/route';
 import TextMessage from './TextMessage';
-import StepSeparator from './StepSeparator';
-import AmazonToolMessage from './AmazonToolMessage';
+import ProductGalleryMessage from './ProductGalleryMessage';
 
 interface MessagePartProps {
   part: any;
@@ -15,10 +14,14 @@ function MessagePart({ part, index, onBuyProduct }: MessagePartProps) {
       return <TextMessage text={part.text} />;
 
     case 'step-start':
-      return <StepSeparator isFirstStep={index === 0} />;
+      return (
+      <div className="text-gray-500">
+        <hr className="my-2 border-gray-300" />
+      </div>
+      );
 
-    case 'tool-searchAmazonProducts':
-      return <AmazonToolMessage part={part} onBuyProduct={onBuyProduct} />;
+    case 'tool-searchProducts':
+      return <ProductGalleryMessage part={part} onBuyProduct={onBuyProduct} />;
 
     default:
       return null;

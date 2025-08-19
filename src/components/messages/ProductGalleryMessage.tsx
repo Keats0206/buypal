@@ -1,13 +1,7 @@
 import Image from 'next/image';
+import { ShoppingProduct } from '@/tools/types';
 
-interface AmazonProduct {
-  name: string;
-  price: string;
-  image_url?: string;
-  rating?: string;
-}
-
-interface AmazonToolMessageProps {
+interface ProductGalleryMessageProps {
   part: {
     state: 'input-available' | 'output-available' | 'output-error';
     input: {
@@ -15,15 +9,15 @@ interface AmazonToolMessageProps {
     };
     output?: {
       state: 'loading' | 'ready';
-      products?: AmazonProduct[];
+      products?: ShoppingProduct[];
       message?: string;
     };
     errorText?: string;
   };
-  onBuyProduct: (product: AmazonProduct) => void;
+  onBuyProduct: (product: ShoppingProduct) => void;
 }
 
-export default function AmazonToolMessage({ part, onBuyProduct }: AmazonToolMessageProps) {
+export default function ProductGalleryMessage({ part, onBuyProduct }: ProductGalleryMessageProps) {
   switch (part.state) {
     case 'input-available':
       return (
@@ -53,18 +47,18 @@ export default function AmazonToolMessage({ part, onBuyProduct }: AmazonToolMess
         return (
           <div className="mt-4">
             <h3 className="text-lg font-semibold mb-4 text-gray-800">
-              Amazon Products for &quot;{part.input.query}&quot;
+              Products for &quot;{part.input.query}&quot;
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {part.output.products.map((product: AmazonProduct, productIndex: number) => (
+              {part.output.products.map((product: ShoppingProduct, productIndex: number) => (
                 <div
                   key={productIndex}
                   className="border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow bg-white"
                 >
-                  {product.image_url && product.image_url !== 'Image not found' && (
+                  {product.imageUrl && product.imageUrl !== 'Image not found' && (
                     <div className="mb-3 relative h-48">
                       <Image
-                        src={product.image_url}
+                        src={product.imageUrl}
                         alt={product.name}
                         fill
                         className="object-contain rounded"
