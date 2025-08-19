@@ -15,9 +15,7 @@ function MessagePart({ part, index, onBuyProduct }: MessagePartProps) {
 
     case 'step-start':
       return (
-      <div className="text-gray-500">
-
-      </div>
+        <div className="text-gray-500"></div>
       );
 
     case 'tool-searchProducts':
@@ -69,7 +67,7 @@ export default function Message({ message, onBuyProduct }: MessageProps) {
       <div className="font-semibold text-sm text-gray-600 mb-2">
         {message.role === 'user' ? 'You' : 'Rye Powered Assistant'}
       </div>
-      <div className={`rounded-lg p-4 ${
+      <div className={`p-4 ${
         message.role === 'assistant' ? 'bg-[#e6ffb7]' : 'bg-gray-50'
       }`}>
         {renderMessageContent()}

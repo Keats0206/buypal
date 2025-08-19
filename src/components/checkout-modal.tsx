@@ -9,6 +9,7 @@ import {
   useElements,
 } from '@stripe/react-stripe-js';
 import { ShoppingProduct } from '@/tools/types';
+import { CheckoutIntent } from '@/lib/rye';
 
 // Initialize Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
@@ -30,6 +31,7 @@ interface BuyerInfo {
 interface CheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onOrderComplete: (product: ShoppingProduct, checkoutIntent: CheckoutIntent) => void;
   product: ShoppingProduct;
 }
 
@@ -48,7 +50,7 @@ const CARD_ELEMENT_OPTIONS = {
   },
 };
 
-function CheckoutForm({ product, onClose }: { product: ShoppingProduct; onClose: () => void }) {
+function CheckoutForm({ product, onClose, onOrderComplete }: { product: ShoppingProduct; onClose: () => void; onOrderComplete: (product: ShoppingProduct, checkoutIntent: CheckoutIntent) => void }) {
   const stripe = useStripe();
   const elements = useElements();
   const [step, setStep] = useState<'buyer-info' | 'loading-offer' | 'payment'>('buyer-info');
@@ -169,6 +171,7 @@ function CheckoutForm({ product, onClose }: { product: ShoppingProduct; onClose:
         const { checkoutIntent: updatedIntent } = await response.json();
         if (updatedIntent.state == 'completed') {
           alert('Order placed successfully! You will receive a confirmation email shortly.');
+          onOrderComplete(product, updatedIntent);
           onClose();
           setLoading(false);
         } else if (updatedIntent.state == 'failed') {
@@ -215,13 +218,13 @@ function CheckoutForm({ product, onClose }: { product: ShoppingProduct; onClose:
       <div className="space-y-4">
         <h3 className="text-lg font-semibold mb-4">Product Details</h3>
 
-        <div className="bg-gray-50 p-6 rounded-lg">
+        <div className="bg-gray-50 p-6">
           {product.imageUrl && product.imageUrl !== 'Image not found' && (
             <div className="mb-4">
               <img
                 src={product.imageUrl}
                 alt={product.name}
-                className={`object-contain rounded-lg mx-auto ${
+                className={`object-contain mx-auto ${
                   step === 'buyer-info'
                     ? 'w-full max-w-xs'
                     : 'w-full max-w-[100px]'
@@ -254,7 +257,7 @@ function CheckoutForm({ product, onClose }: { product: ShoppingProduct; onClose:
 
                         {/* Cost Breakdown */}
             {step === 'payment' && checkoutIntent.offer ? (
-              <div className="bg-white border border-gray-200 p-4 rounded-lg">
+              <div className="bg-white border border-gray-200 p-4">
                 <h4 className="font-medium text-gray-800 mb-3">Order Summary</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
@@ -288,7 +291,7 @@ function CheckoutForm({ product, onClose }: { product: ShoppingProduct; onClose:
                 </div>
               </div>
             ) : (
-              <div className="bg-white border border-gray-200 p-4 rounded-lg">
+              <div className="bg-white border border-gray-200 p-4">
                 <h4 className="font-medium text-gray-800 mb-3">Order Summary</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
@@ -332,7 +335,7 @@ function CheckoutForm({ product, onClose }: { product: ShoppingProduct; onClose:
                 required
                 value={buyerInfo.firstName}
                 onChange={(e) => handleInputChange('firstName', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
@@ -344,7 +347,7 @@ function CheckoutForm({ product, onClose }: { product: ShoppingProduct; onClose:
                 required
                 value={buyerInfo.lastName}
                 onChange={(e) => handleInputChange('lastName', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
@@ -358,7 +361,7 @@ function CheckoutForm({ product, onClose }: { product: ShoppingProduct; onClose:
               required
               value={buyerInfo.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -371,7 +374,7 @@ function CheckoutForm({ product, onClose }: { product: ShoppingProduct; onClose:
               required
               value={buyerInfo.phone}
               onChange={(e) => handleInputChange('phone', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -384,7 +387,7 @@ function CheckoutForm({ product, onClose }: { product: ShoppingProduct; onClose:
               required
               value={buyerInfo.address1}
               onChange={(e) => handleInputChange('address1', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -396,7 +399,7 @@ function CheckoutForm({ product, onClose }: { product: ShoppingProduct; onClose:
               type="text"
               value={buyerInfo.address2}
               onChange={(e) => handleInputChange('address2', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -410,7 +413,7 @@ function CheckoutForm({ product, onClose }: { product: ShoppingProduct; onClose:
                 required
                 value={buyerInfo.city}
                 onChange={(e) => handleInputChange('city', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
@@ -422,7 +425,7 @@ function CheckoutForm({ product, onClose }: { product: ShoppingProduct; onClose:
                 required
                 value={buyerInfo.province}
                 onChange={(e) => handleInputChange('province', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
@@ -436,7 +439,7 @@ function CheckoutForm({ product, onClose }: { product: ShoppingProduct; onClose:
                 required
                 value={buyerInfo.country}
                 onChange={(e) => handleInputChange('country', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="US">United States</option>
                 <option value="CA">Canada</option>
@@ -453,7 +456,7 @@ function CheckoutForm({ product, onClose }: { product: ShoppingProduct; onClose:
                 required
                 value={buyerInfo.postalCode}
                 onChange={(e) => handleInputChange('postalCode', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
@@ -466,14 +469,14 @@ function CheckoutForm({ product, onClose }: { product: ShoppingProduct; onClose:
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+                className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors"
+                className="flex-1 px-4 py-2 bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
               >
                 {loading ? 'Processing...' : 'Continue to Payment'}
               </button>
@@ -497,7 +500,7 @@ function CheckoutForm({ product, onClose }: { product: ShoppingProduct; onClose:
             <h3 className="text-lg font-semibold">Payment Information</h3>
 
             {/* Buyer Information Summary */}
-            <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="bg-gray-50 p-4">
               <h4 className="font-medium text-gray-800 mb-3">Shipping Information</h4>
               <div className="text-sm space-y-1">
                 <p className="font-medium text-gray-900">
@@ -521,7 +524,7 @@ function CheckoutForm({ product, onClose }: { product: ShoppingProduct; onClose:
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Card Information *
                 </label>
-                <div className="border border-gray-300 rounded-md p-3">
+                <div className="border border-gray-300 p-3">
                   <CardElement options={CARD_ELEMENT_OPTIONS} />
                 </div>
               </div>
@@ -534,14 +537,14 @@ function CheckoutForm({ product, onClose }: { product: ShoppingProduct; onClose:
                 <button
                   type="button"
                   onClick={() => setStep('buyer-info')}
-                  className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+                  className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors"
                 >
                   Back
                 </button>
                 <button
                   type="submit"
                   disabled={loading || !stripe}
-                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors"
+                  className="flex-1 px-4 py-2 bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
                 >
                   {loading ? 'Processing...' : 'Complete Purchase'}
                 </button>
@@ -554,12 +557,12 @@ function CheckoutForm({ product, onClose }: { product: ShoppingProduct; onClose:
   );
 }
 
-export default function CheckoutModal({ isOpen, onClose, product }: CheckoutModalProps) {
+export default function CheckoutModal({ isOpen, onClose, product, onOrderComplete }: CheckoutModalProps) {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-gray-800">Purchase Product</h2>
@@ -572,7 +575,7 @@ export default function CheckoutModal({ isOpen, onClose, product }: CheckoutModa
           </div>
 
           <Elements stripe={stripePromise}>
-            <CheckoutForm product={product} onClose={onClose} />
+            <CheckoutForm product={product} onClose={onClose} onOrderComplete={onOrderComplete} />
           </Elements>
         </div>
       </div>

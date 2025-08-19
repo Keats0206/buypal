@@ -53,7 +53,7 @@ export default function ProductGalleryMessage({ part, onBuyProduct }: ProductGal
               {part.output.products.map((product: ShoppingProduct, productIndex: number) => (
                 <div
                   key={productIndex}
-                  className="border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow bg-white"
+                  className="border p-4 shadow-sm hover:shadow-md transition-shadow bg-white"
                 >
                   {product.imageUrl && product.imageUrl !== 'Image not found' && (
                     <div className="mb-3 relative h-48">
@@ -61,7 +61,7 @@ export default function ProductGalleryMessage({ part, onBuyProduct }: ProductGal
                         src={product.imageUrl}
                         alt={product.name}
                         fill
-                        className="object-contain rounded"
+                        className="object-contain"
                         sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       />
                     </div>
@@ -82,7 +82,7 @@ export default function ProductGalleryMessage({ part, onBuyProduct }: ProductGal
                     </div>
                     <button
                       onClick={() => onBuyProduct(product)}
-                      className="inline-block w-full text-center bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded transition-colors text-sm font-medium"
+                      className="inline-block w-full text-center bg-green-600 hover:bg-green-700 text-white py-2 px-4 transition-colors text-sm font-medium"
                     >
                       Buy Now
                     </button>

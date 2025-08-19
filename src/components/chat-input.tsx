@@ -20,7 +20,7 @@ export default function ChatInput({
       }}
     >
       <textarea
-        className="w-full min-h-[80px] p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e6ffb7] focus:border-transparent resize-none"
+        className="w-full min-h-[80px] p-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#e6ffb7] focus:border-transparent resize-none"
         placeholder="Type your message..."
         disabled={status !== 'ready'}
         value={text}
