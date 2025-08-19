@@ -28,12 +28,12 @@ export async function POST(req: Request) {
     You are currently in the United States.
     `,
     messages: convertToModelMessages(messages),
-    stopWhen: stepCountIs(5), // multi-steps for server-side tools
+    stopWhen: stepCountIs(2), // multi-steps for server-side tools
     tools,
   });
 
   return result.toUIMessageStreamResponse({
-    originalMessages: messages, // maintains correct message IDs and conversation history
+    originalMessages: messages,
     onFinish: options => {
       console.log('onFinish', options);
     },

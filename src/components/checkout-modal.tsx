@@ -8,17 +8,11 @@ import {
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js';
+import { ShoppingProduct } from '@/tools/types';
 
 // Initialize Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
-interface Product {
-  name: string;
-  price: string;
-  image_url: string;
-  rating: string;
-  url: string;
-}
 
 interface BuyerInfo {
   firstName: string;
@@ -36,7 +30,7 @@ interface BuyerInfo {
 interface CheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
-  product: Product;
+  product: ShoppingProduct;
 }
 
 const CARD_ELEMENT_OPTIONS = {
@@ -54,13 +48,13 @@ const CARD_ELEMENT_OPTIONS = {
   },
 };
 
-function CheckoutForm({ product, onClose }: { product: Product; onClose: () => void }) {
+function CheckoutForm({ product, onClose }: { product: ShoppingProduct; onClose: () => void }) {
   const stripe = useStripe();
   const elements = useElements();
-  const [step, setStep] = useState<'buyer-info' | 'payment'>('buyer-info');
+  const [step, setStep] = useState<'buyer-info' | 'loading-offer' | 'payment'>('buyer-info');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [checkoutIntentId, setCheckoutIntentId] = useState<string | null>(null);
+  const [checkoutIntent, setCheckoutIntent] = useState<any | null>(null);
 
   const [buyerInfo, setBuyerInfo] = useState<BuyerInfo>({
     firstName: '',
@@ -99,8 +93,15 @@ function CheckoutForm({ product, onClose }: { product: Product; onClose: () => v
       }
 
       const { checkoutIntent } = await response.json();
-      setCheckoutIntentId(checkoutIntent.id);
-      setStep('payment');
+      setCheckoutIntent(checkoutIntent);
+
+      // Poll until we have the full offer data (awaiting_confirmation state)
+      if (checkoutIntent.state !== 'awaiting_confirmation') {
+        setStep('loading-offer');
+        pollForOfferData(checkoutIntent.id);
+      } else {
+        setStep('payment');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -111,7 +112,7 @@ function CheckoutForm({ product, onClose }: { product: Product; onClose: () => v
   const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!stripe || !elements || !checkoutIntentId) {
+    if (!stripe || !elements || !checkoutIntent) {
       return;
     }
 
@@ -148,7 +149,7 @@ function CheckoutForm({ product, onClose }: { product: Product; onClose: () => v
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          checkoutIntentId,
+          checkoutIntentId: checkoutIntent.id,
           paymentMethodId: token.id,
         }),
       });
@@ -164,17 +165,17 @@ function CheckoutForm({ product, onClose }: { product: Product; onClose: () => v
 
       // add message that says "placing order..." then poll the GET checkout-intent endpoint every second until it's either successful or failed.
       const pollCheckoutIntent = async () => {
-        const response = await fetch(`/api/checkout/get-intent?checkoutIntentId=${checkoutIntentId}`);
-        const { checkoutIntent} = await response.json();
-        if (checkoutIntent.state == 'completed') {
+        const response = await fetch(`/api/checkout/get-intent?checkoutIntentId=${checkoutIntent.id}`);
+        const { checkoutIntent: updatedIntent } = await response.json();
+        if (updatedIntent.state == 'completed') {
           alert('Order placed successfully! You will receive a confirmation email shortly.');
           onClose();
           setLoading(false);
-        } else if (checkoutIntent.state == 'failed') {
+        } else if (updatedIntent.state == 'failed') {
           alert('Order failed. Please try again.');
           onClose();
           setLoading(false);
-        } else if (checkoutIntent.state == 'placing_order') {
+        } else if (updatedIntent.state == 'placing_order') {
           console.log("Still placing order...");
           setTimeout(pollCheckoutIntent, 1000);
         }
@@ -186,15 +187,140 @@ function CheckoutForm({ product, onClose }: { product: Product; onClose: () => v
     }
   };
 
+  const pollForOfferData = async (checkoutIntentId: string) => {
+    try {
+      const response = await fetch(`/api/checkout/get-intent?checkoutIntentId=${checkoutIntentId}`);
+      const { checkoutIntent: updatedIntent } = await response.json();
+
+      if (updatedIntent.state === 'awaiting_confirmation' && updatedIntent.offer) {
+        setCheckoutIntent(updatedIntent);
+        setStep('payment');
+      } else {
+        // Continue polling every 2 seconds
+        setTimeout(() => pollForOfferData(checkoutIntentId), 2000);
+      }
+    } catch (err) {
+      setError('Failed to get pricing information. Please try again.');
+      setLoading(false);
+    }
+  };
+
   const handleInputChange = (field: keyof BuyerInfo, value: string) => {
     setBuyerInfo(prev => ({ ...prev, [field]: value }));
   };
 
   return (
-    <div className="max-w-md mx-auto">
-      {step === 'buyer-info' ? (
-        <form onSubmit={handleBuyerInfoSubmit} className="space-y-4">
-          <h3 className="text-lg font-semibold mb-4">Buyer Information</h3>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Product Information - Left Side */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold mb-4">Product Details</h3>
+
+        <div className="bg-gray-50 p-6 rounded-lg">
+          {product.imageUrl && product.imageUrl !== 'Image not found' && (
+            <div className="mb-4">
+              <img
+                src={product.imageUrl}
+                alt={product.name}
+                className={`object-contain rounded-lg mx-auto ${
+                  step === 'buyer-info'
+                    ? 'w-full max-w-xs'
+                    : 'w-full max-w-[100px]'
+                }`}
+              />
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <h4 className="font-medium text-gray-800 text-lg">{product.name}</h4>
+            {step === 'buyer-info' && (
+              <>
+                <p className="text-2xl font-bold text-green-600">{product.price}</p>
+                {product.rating && product.rating !== 'Rating not available' && (
+                  <p className="text-sm text-yellow-600 flex items-center gap-1">
+                    <span>⭐</span>
+                    <span>{product.rating}</span>
+                  </p>
+                )}
+              </>
+            )}
+            {(step === 'loading-offer' || step === 'payment') && checkoutIntent && (
+              <p className="text-sm text-gray-600">Quantity: {checkoutIntent.quantity}</p>
+            )}
+          </div>
+        </div>
+
+        {(step === 'loading-offer' || step === 'payment') && checkoutIntent && (
+          <div className="space-y-4">
+
+                        {/* Cost Breakdown */}
+            {step === 'payment' && checkoutIntent.offer ? (
+              <div className="bg-white border border-gray-200 p-4 rounded-lg">
+                <h4 className="font-medium text-gray-800 mb-3">Order Summary</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Subtotal</span>
+                    <span className="text-gray-800">
+                      ${(checkoutIntent.offer.cost.subtotal.amountSubunits / 100).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Shipping</span>
+                    <span className="text-gray-800">
+                      ${(checkoutIntent.offer.shipping.availableOptions.find((opt: any) =>
+                        opt.id === checkoutIntent.offer.shipping.selectedOptionId
+                      )?.cost.amountSubunits / 100 || 0).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Tax</span>
+                    <span className="text-gray-800">
+                      ${(checkoutIntent.offer.cost.tax.amountSubunits / 100).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="border-t pt-2 mt-2">
+                    <div className="flex justify-between font-semibold text-base">
+                      <span className="text-gray-800">Total</span>
+                      <span className="text-green-600">
+                        ${(checkoutIntent.offer.cost.total.amountSubunits / 100).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white border border-gray-200 p-4 rounded-lg">
+                <h4 className="font-medium text-gray-800 mb-3">Order Summary</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Subtotal</span>
+                    <span className="text-gray-400">Calculating...</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Shipping</span>
+                    <span className="text-gray-400">Calculating...</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Tax</span>
+                    <span className="text-gray-400">Calculating...</span>
+                  </div>
+                  <div className="border-t pt-2 mt-2">
+                    <div className="flex justify-between font-semibold text-base">
+                      <span className="text-gray-800">Total</span>
+                      <span className="text-gray-400">Calculating...</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Form - Right Side */}
+      <div className="space-y-4">
+        {step === 'buyer-info' ? (
+          <form onSubmit={handleBuyerInfoSubmit} className="space-y-4">
+            <h3 className="text-lg font-semibold mb-4">Buyer Information</h3>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -336,69 +462,94 @@ function CheckoutForm({ product, onClose }: { product: Product; onClose: () => v
             <div className="text-red-600 text-sm">{error}</div>
           )}
 
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors"
-            >
-              {loading ? 'Processing...' : 'Continue to Payment'}
-            </button>
-          </div>
-        </form>
-      ) : (
-        <form onSubmit={handlePaymentSubmit} className="space-y-4">
-          <h3 className="text-lg font-semibold mb-4">Payment Information</h3>
-
-          <div className="bg-gray-50 p-4 rounded-lg mb-4">
-            <h4 className="font-medium text-gray-800 mb-2">Order Summary</h4>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">{product.name}</span>
-              <span className="font-medium">{product.price}</span>
+            <div className="flex gap-3 pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors"
+              >
+                {loading ? 'Processing...' : 'Continue to Payment'}
+              </button>
             </div>
-            <div className="text-xs text-gray-500 mt-1">
-              Final price with taxes and shipping will be calculated
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Card Information *
-            </label>
-            <div className="border border-gray-300 rounded-md p-3">
-              <CardElement options={CARD_ELEMENT_OPTIONS} />
+          </form>
+        ) : step === 'loading-offer' ? (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold">Getting Pricing Information</h3>
+            <div className="flex flex-col items-center justify-center py-8 space-y-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+              <p className="text-gray-600 text-center">
+                We're calculating shipping, taxes, and total cost...
+              </p>
+              <p className="text-sm text-gray-500 text-center">
+                This usually takes a few seconds
+              </p>
             </div>
           </div>
+        ) : (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold">Payment Information</h3>
 
-          {error && (
-            <div className="text-red-600 text-sm">{error}</div>
-          )}
+            {/* Buyer Information Summary */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h4 className="font-medium text-gray-800 mb-3">Shipping Information</h4>
+              <div className="text-sm space-y-1">
+                <p className="font-medium text-gray-900">
+                  {buyerInfo.firstName} {buyerInfo.lastName}
+                </p>
+                <p className="text-gray-700">{buyerInfo.email}</p>
+                <p className="text-gray-700">{buyerInfo.phone}</p>
+                <div className="mt-2 text-gray-700">
+                  <p>{buyerInfo.address1}</p>
+                  {buyerInfo.address2 && <p>{buyerInfo.address2}</p>}
+                  <p>
+                    {buyerInfo.city}, {buyerInfo.province} {buyerInfo.postalCode}
+                  </p>
+                  <p>{buyerInfo.country}</p>
+                </div>
+              </div>
+            </div>
 
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={() => setStep('buyer-info')}
-              className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
-            >
-              Back
-            </button>
-            <button
-              type="submit"
-              disabled={loading || !stripe}
-              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors"
-            >
-              {loading ? 'Processing...' : 'Complete Purchase'}
-            </button>
+            <form onSubmit={handlePaymentSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Card Information *
+                </label>
+                <div className="border border-gray-300 rounded-md p-3">
+                  <CardElement options={CARD_ELEMENT_OPTIONS} />
+                </div>
+              </div>
+
+              {error && (
+                <div className="text-red-600 text-sm">{error}</div>
+              )}
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setStep('buyer-info')}
+                  className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+                >
+                  Back
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading || !stripe}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors"
+                >
+                  {loading ? 'Processing...' : 'Complete Purchase'}
+                </button>
+              </div>
+            </form>
           </div>
-        </form>
-      )}
+        )}
+      </div>
     </div>
   );
 }
@@ -408,7 +559,7 @@ export default function CheckoutModal({ isOpen, onClose, product }: CheckoutModa
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-gray-800">Purchase Product</h2>
@@ -418,25 +569,6 @@ export default function CheckoutModal({ isOpen, onClose, product }: CheckoutModa
             >
               ×
             </button>
-          </div>
-
-          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-            <div className="flex gap-4">
-              {product.image_url && product.image_url !== 'Image not found' && (
-                <img
-                  src={product.image_url}
-                  alt={product.name}
-                  className="w-20 h-20 object-contain rounded"
-                />
-              )}
-              <div>
-                <h3 className="font-medium text-gray-800">{product.name}</h3>
-                <p className="text-lg font-bold text-green-600">{product.price}</p>
-                {product.rating && product.rating !== 'Rating not available' && (
-                  <p className="text-sm text-yellow-600">⭐ {product.rating}</p>
-                )}
-              </div>
-            </div>
           </div>
 
           <Elements stripe={stripePromise}>

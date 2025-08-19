@@ -19,7 +19,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <Header />
-        <main className="bg-muted/50 flex h-screen flex-1 flex-col">
+        <main className="bg-muted/50 flex flex-1 flex-col pt-16 min-h-[calc(100vh-4rem)]">
           {children}
         </main>
       </body>

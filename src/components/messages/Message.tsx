@@ -16,7 +16,7 @@ function MessagePart({ part, index, onBuyProduct }: MessagePartProps) {
     case 'step-start':
       return (
       <div className="text-gray-500">
-        <hr className="my-2 border-gray-300" />
+
       </div>
       );
 
