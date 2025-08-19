@@ -14,7 +14,6 @@ import { CheckoutIntent } from '@/lib/rye';
 // Initialize Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
-
 interface BuyerInfo {
   firstName: string;
   lastName: string;

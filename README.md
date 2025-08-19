@@ -1,4 +1,4 @@
-# Rye AI Chatbot
+# Demo AI chat storefront with Rye + Stripe in Next.js
 
 This is a [Next.js](https://nextjs.org/) project that combines AI-powered chat with e-commerce functionality. Users can search for Amazon products through natural language and purchase them directly through an integrated checkout flow powered by Rye and Stripe.
 
@@ -12,23 +12,23 @@ This is a [Next.js](https://nextjs.org/) project that combines AI-powered chat w
 
 ## Environment Variables
 
-Create a `.env.local` file with the following variables:
+Copy the `.env.example` file to create a new `.env` file and set your environment variables.
 
-```env
-# OpenAI API Key
-OPENAI_API_KEY=your_openai_api_key_here
+```bash
+cp .env.example .env
+```
 
-# Rye API Configuration
-RYE_API_KEY=your_rye_api_key_here
-RYE_ENVIRONMENT=staging
+Be sure to set these variables. Note the Stripe Publishable key must be Rye's publishable key:
 
-# Stripe Configuration
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=rye_stripe_pk
+```yaml
+OPENAI_API_KEY=
+RYE_API_KEY=
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_51LgDhrHGDlstla3fdqlULAne0rAf4Ho6aBV2cobkYQ4m863Sy0W8DNu2HOnUeYTQzQnE4DZGyzvCB8Yzl1r38isl00H9sVKEMu
 ```
 
 ## Getting Started
 
-First, install dependencies and run the development server:
+Install dependencies and run the development server:
 
 ```bash
 npm install
