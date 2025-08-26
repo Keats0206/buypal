@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { ShoppingProduct } from '@/tools/types';
+import { ShoppingProduct } from '@/lib/types';
 
 interface ProductGalleryMessageProps {
   part: {
@@ -53,7 +53,7 @@ export default function ProductGalleryMessage({ part, onBuyProduct }: ProductGal
               {part.output.products.map((product: ShoppingProduct, productIndex: number) => (
                 <div
                   key={productIndex}
-                  className="border p-4 shadow-sm hover:shadow-md transition-shadow bg-white"
+                  className="p-4 bg-white"
                 >
                   {product.imageUrl && product.imageUrl !== 'Image not found' && (
                     <div className="mb-3 relative h-48">

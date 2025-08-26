@@ -7,7 +7,12 @@ import {
   UIDataTypes,
   UIMessage,
 } from 'ai';
-import { tools } from '../../../tools';
+import { searchAmazonProductsTool } from '@/tools/amazon';
+
+
+const tools = {
+  searchProducts: searchAmazonProductsTool
+}
 
 export type UseChatToolsMessage = UIMessage<
   never,

@@ -1,7 +1,7 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import * as cheerio from 'cheerio';
-import { ShoppingProduct } from './types';
+import { ShoppingProduct } from '../lib/types';
 
 export function cleanPrice(priceText: string): string {
   if (!priceText) return 'Price not available';
@@ -77,6 +77,7 @@ export function extractSearchResults(htmlContent: string, maxResults: number): S
 
   return products;
 }
+
 export async function fetchAmazonPage(url: string): Promise<string> {
   const headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',

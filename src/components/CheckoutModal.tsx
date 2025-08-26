@@ -8,24 +8,11 @@ import {
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js';
-import { ShoppingProduct } from '@/tools/types';
-import { CheckoutIntent } from '@/lib/rye';
+import { ShoppingProduct, Buyer, CheckoutIntent} from '@/lib/types';
+import Image from 'next/image';
 
 // Initialize Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
-
-interface BuyerInfo {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  address1: string;
-  address2: string;
-  city: string;
-  province: string;
-  country: string;
-  postalCode: string;
-}
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -57,7 +44,7 @@ function CheckoutForm({ product, onClose, onOrderComplete }: { product: Shopping
   const [error, setError] = useState<string | null>(null);
   const [checkoutIntent, setCheckoutIntent] = useState<any | null>(null);
 
-  const [buyerInfo, setBuyerInfo] = useState<BuyerInfo>({
+  const [buyerInfo, setBuyerInfo] = useState<Buyer>({
     firstName: '',
     lastName: '',
     email: '',
@@ -169,7 +156,6 @@ function CheckoutForm({ product, onClose, onOrderComplete }: { product: Shopping
         const response = await fetch(`/api/checkout/get-intent?checkoutIntentId=${checkoutIntent.id}`);
         const { checkoutIntent: updatedIntent } = await response.json();
         if (updatedIntent.state == 'completed') {
-          alert('Order placed successfully! You will receive a confirmation email shortly.');
           onOrderComplete(product, updatedIntent);
           onClose();
           setLoading(false);
@@ -207,7 +193,7 @@ function CheckoutForm({ product, onClose, onOrderComplete }: { product: Shopping
     }
   };
 
-  const handleInputChange = (field: keyof BuyerInfo, value: string) => {
+  const handleInputChange = (field: keyof Buyer, value: string) => {
     setBuyerInfo(prev => ({ ...prev, [field]: value }));
   };
 
@@ -220,14 +206,12 @@ function CheckoutForm({ product, onClose, onOrderComplete }: { product: Shopping
         <div className="bg-gray-50 p-6">
           {product.imageUrl && product.imageUrl !== 'Image not found' && (
             <div className="mb-4">
-              <img
+              <Image
                 src={product.imageUrl}
                 alt={product.name}
-                className={`object-contain mx-auto ${
-                  step === 'buyer-info'
-                    ? 'w-full max-w-xs'
-                    : 'w-full max-w-[100px]'
-                }`}
+                className='object-contain mx-auto w-full max-w-[100px]'
+                width={100}
+                height={100}
               />
             </div>
           )}
@@ -253,8 +237,6 @@ function CheckoutForm({ product, onClose, onOrderComplete }: { product: Shopping
 
         {(step === 'loading-offer' || step === 'payment') && checkoutIntent && (
           <div className="space-y-4">
-
-                        {/* Cost Breakdown */}
             {step === 'payment' && checkoutIntent.offer ? (
               <div className="bg-white border border-gray-200 p-4">
                 <h4 className="font-medium text-gray-800 mb-3">Order Summary</h4>
@@ -487,7 +469,7 @@ function CheckoutForm({ product, onClose, onOrderComplete }: { product: Shopping
             <div className="flex flex-col items-center justify-center py-8 space-y-4">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
               <p className="text-gray-600 text-center">
-                We're calculating shipping, taxes, and total cost...
+                Calculating shipping, taxes, and total cost...
               </p>
               <p className="text-sm text-gray-500 text-center">
                 This usually takes a few seconds

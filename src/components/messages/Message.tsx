@@ -1,6 +1,18 @@
 import { UseChatToolsMessage } from '@/app/api/chat/route';
-import TextMessage from './TextMessage';
 import ProductGalleryMessage from './ProductGalleryMessage';
+import ReactMarkdown from 'react-markdown';
+
+interface TextMessageProps {
+  text: string;
+}
+
+function TextMessage({ text }: TextMessageProps) {
+  return (
+    <div className="prose prose-sm max-w-none">
+      <ReactMarkdown>{text}</ReactMarkdown>
+    </div>
+  );
+}
 
 interface MessagePartProps {
   part: any;

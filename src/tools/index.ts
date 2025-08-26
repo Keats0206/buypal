@@ -7,4 +7,4 @@ export const tools = {
 } as const;
 
 export { searchAmazonProductsTool } from './amazon';
-export type { ShoppingProduct } from './types';
+export type { ShoppingProduct } from '../lib/types';

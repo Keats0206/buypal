@@ -1,7 +1,7 @@
 'use client';
 
-import ChatInput from '@/components/chat-input';
-import CheckoutModal from '@/components/checkout-modal';
+import ChatInput from '@/components/ChatInput';
+import CheckoutModal from '@/components/CheckoutModal';
 import { Message } from '@/components/messages';
 import { useChat } from '@ai-sdk/react';
 import {
@@ -10,7 +10,7 @@ import {
 } from 'ai';
 import { UseChatToolsMessage } from '@/app/api/chat/route';
 import { useEffect, useRef, useState } from 'react';
-import { ShoppingProduct } from '@/tools/types';
+import { ShoppingProduct } from '@/lib/types';
 import { CheckoutIntent } from '@/lib/rye';
 
 export default function Chat() {
