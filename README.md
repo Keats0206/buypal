@@ -2,6 +2,8 @@
 
 This is a [Next.js](https://nextjs.org/) project that combines AI-powered chat with e-commerce functionality. Users can search for Amazon products through natural language and purchase them directly through an integrated checkout flow powered by Rye and Stripe.
 
+[![Demo AI chat storefront with Rye + Stripe in Next.js](https://img.youtube.com/vi/c15CmI-kn54/0.jpg)](https://www.youtube.com/watch?v=c15CmI-kn54)
+
 ## Features
 
 - **AI-Powered Chat**: Natural language interface for product discovery
