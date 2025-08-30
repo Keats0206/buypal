@@ -11,7 +11,7 @@ import {
 import { UseChatToolsMessage } from '@/app/api/chat/route';
 import { useEffect, useRef, useState } from 'react';
 import { ShoppingProduct } from '@/lib/types';
-import { CheckoutIntent } from '@/lib/rye';
+import { CheckoutIntent } from '@/lib/types';
 
 export default function Chat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
