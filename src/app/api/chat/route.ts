@@ -9,7 +9,6 @@ import {
 } from 'ai';
 import { searchAmazonProductsTool } from '@/tools/amazon';
 
-
 const tools = {
   searchProducts: searchAmazonProductsTool
 }
@@ -39,8 +38,5 @@ export async function POST(req: Request) {
 
   return result.toUIMessageStreamResponse({
     originalMessages: messages,
-    onFinish: options => {
-      console.log('onFinish', options);
-    },
   });
 }

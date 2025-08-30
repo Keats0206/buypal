@@ -86,7 +86,7 @@ function CheckoutForm({ product, onClose, onOrderComplete }: { product: Shopping
       // Poll until we have the full offer data (awaiting_confirmation state)
       if (checkoutIntent.state !== 'awaiting_confirmation') {
         setStep('loading-offer');
-        pollForOfferData(checkoutIntent.id);
+        pollCheckoutIntentState(checkoutIntent.id);
       } else {
         setStep('payment');
       }
@@ -146,49 +146,54 @@ function CheckoutForm({ product, onClose, onOrderComplete }: { product: Shopping
         throw new Error('Failed to confirm payment');
       }
 
-      const result = await response.json();
-
-      // Success! Close modal and show success message
-      console.log('result', result);
-
-      // add message that says "placing order..." then poll the GET checkout-intent endpoint every second until it's either successful or failed.
-      const pollCheckoutIntent = async () => {
-        const response = await fetch(`/api/checkout/get-intent?checkoutIntentId=${checkoutIntent.id}`);
-        const { checkoutIntent: updatedIntent } = await response.json();
-        if (updatedIntent.state == 'completed') {
-          onOrderComplete(product, updatedIntent);
-          onClose();
-          setLoading(false);
-        } else if (updatedIntent.state == 'failed') {
-          alert('Order failed. Please try again.');
-          onClose();
-          setLoading(false);
-        } else if (updatedIntent.state == 'placing_order') {
-          console.log("Still placing order...");
-          setTimeout(pollCheckoutIntent, 1000);
-        }
-      };
-      pollCheckoutIntent();
-
+      // Poll until the checkout intent is either successful or failed:
+      pollCheckoutIntentState(checkoutIntent.id);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Payment failed');
     }
   };
 
-  const pollForOfferData = async (checkoutIntentId: string) => {
+  const pollCheckoutIntentState = async (checkoutIntentId: string, expectedState?: string) => {
     try {
       const response = await fetch(`/api/checkout/get-intent?checkoutIntentId=${checkoutIntentId}`);
       const { checkoutIntent: updatedIntent } = await response.json();
 
-      if (updatedIntent.state === 'awaiting_confirmation' && updatedIntent.offer) {
-        setCheckoutIntent(updatedIntent);
-        setStep('payment');
-      } else {
-        // Continue polling every 2 seconds
-        setTimeout(() => pollForOfferData(checkoutIntentId), 2000);
+      switch (updatedIntent.state) {
+        case 'awaiting_confirmation':
+          if (updatedIntent.offer) {
+            setCheckoutIntent(updatedIntent);
+            setStep('payment');
+          } else {
+            // Continue polling every 2 seconds for offer data
+            setTimeout(() => pollCheckoutIntentState(checkoutIntentId), 2000);
+          }
+          break;
+
+        case 'placing_order':
+          console.log("Still placing order...");
+          // Continue polling every 1 second for order completion
+          setTimeout(() => pollCheckoutIntentState(checkoutIntentId), 1000);
+          break;
+
+        case 'completed':
+          onOrderComplete(product, updatedIntent);
+          onClose();
+          setLoading(false);
+          break;
+
+        case 'failed':
+          alert('Order failed. Please try again.');
+          onClose();
+          setLoading(false);
+          break;
+
+        default:
+          // For other states, continue polling every 2 seconds
+          setTimeout(() => pollCheckoutIntentState(checkoutIntentId), 2000);
+          break;
       }
     } catch (err) {
-      setError('Failed to get pricing information. Please try again.');
+      setError('Failed to get checkout information. Please try again.');
       setLoading(false);
     }
   };
@@ -199,7 +204,6 @@ function CheckoutForm({ product, onClose, onOrderComplete }: { product: Shopping
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Product Information - Left Side */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold mb-4">Product Details</h3>
 
@@ -340,6 +344,7 @@ function CheckoutForm({ product, onClose, onOrderComplete }: { product: Shopping
             <input
               type="email"
               required
+              autoComplete="email"
               value={buyerInfo.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -353,6 +358,7 @@ function CheckoutForm({ product, onClose, onOrderComplete }: { product: Shopping
             <input
               type="tel"
               required
+              autoComplete="tel"
               value={buyerInfo.phone}
               onChange={(e) => handleInputChange('phone', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -366,6 +372,7 @@ function CheckoutForm({ product, onClose, onOrderComplete }: { product: Shopping
             <input
               type="text"
               required
+              autoComplete="address-line1"
               value={buyerInfo.address1}
               onChange={(e) => handleInputChange('address1', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -378,6 +385,7 @@ function CheckoutForm({ product, onClose, onOrderComplete }: { product: Shopping
             </label>
             <input
               type="text"
+              autoComplete="address-line2"
               value={buyerInfo.address2}
               onChange={(e) => handleInputChange('address2', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -392,6 +400,8 @@ function CheckoutForm({ product, onClose, onOrderComplete }: { product: Shopping
               <input
                 type="text"
                 required
+                autoComplete="city"
+                placeholder="New York"
                 value={buyerInfo.city}
                 onChange={(e) => handleInputChange('city', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -399,13 +409,16 @@ function CheckoutForm({ product, onClose, onOrderComplete }: { product: Shopping
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                State/Province *
+                State *
               </label>
               <input
                 type="text"
+                autoComplete="address-level1"
+                placeholder="NY"
                 required
+                maxLength={2}
                 value={buyerInfo.province}
-                onChange={(e) => handleInputChange('province', e.target.value)}
+                onChange={(e) => handleInputChange('province', e.target.value.toUpperCase())}
                 className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>

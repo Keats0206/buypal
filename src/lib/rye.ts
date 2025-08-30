@@ -2,8 +2,7 @@ import { Buyer, CheckoutIntent } from "./types";
 
 export interface RyeClientConfig {
   apiKey: string;
-  shopperIp: string;
-  environment?: 'staging' | 'production';
+  baseUrl: string;
 }
 
 export interface CreateCheckoutIntentRequest {
@@ -21,18 +20,11 @@ export interface ConfirmCheckoutIntentRequest {
 
 export class RyeClient {
   private apiKey: string;
-  private shopperIp: string;
   private baseUrl: string;
 
   constructor(config: RyeClientConfig) {
     this.apiKey = config.apiKey;
-    this.shopperIp = config.shopperIp;
-
-    // Set base URL based on environment
-    const environment = config.environment || 'staging';
-    this.baseUrl = environment === 'staging'
-      ? 'https://staging.api.rye.com'
-      : 'https://api.rye.com';
+    this.baseUrl = config.baseUrl;
   }
 
   private async makeRequest<T>(
@@ -44,7 +36,6 @@ export class RyeClient {
     const defaultHeaders = {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${this.apiKey}`,
-      'X-Shopper-IP': this.shopperIp,
     };
 
     const config: RequestInit = {

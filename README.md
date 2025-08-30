@@ -23,6 +23,7 @@ Be sure to set these variables. Note the Stripe Publishable key must be Rye's pu
 ```yaml
 OPENAI_API_KEY=
 RYE_API_KEY=
+RYE_API_BASE=
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_51LgDhrHGDlstla3fdqlULAne0rAf4Ho6aBV2cobkYQ4m863Sy0W8DNu2HOnUeYTQzQnE4DZGyzvCB8Yzl1r38isl00H9sVKEMu
 ```
 
@@ -33,10 +34,6 @@ Install dependencies and run the development server:
 ```bash
 npm install
 npm run dev
-# or
-yarn install && yarn dev
-# or
-pnpm install && pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.

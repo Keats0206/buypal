@@ -31,14 +31,13 @@ export async function POST(request: NextRequest) {
 
     // Get client IP for Rye API
     const clientIp = request.headers.get('x-forwarded-for') ||
-                    request.headers.get('x-real-ip') ||
-                    '127.0.0.1';
+      request.headers.get('x-real-ip') ||
+      '127.0.0.1';
 
     // Initialize Rye client
     const ryeClient = createRyeClient({
       apiKey: process.env.RYE_API_KEY!,
-      shopperIp: clientIp,
-      environment: process.env.RYE_ENVIRONMENT as 'staging' | 'production' || 'staging',
+      baseUrl: process.env.RYE_API_BASE!,
     });
 
     // Create checkout intent
