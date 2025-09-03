@@ -144,7 +144,7 @@ The **CHULUX Slim** model offers great value at $39.99 with its space-saving des
   return (
     <div className="flex flex-col h-full w-full mx-auto">
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-7xl mx-auto p-4 space-y-4">
+        <div className="max-w-7xl mx-auto p-4 space-y-4 pb-32">
           {displayMessages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center px-4">
               <div className="max-w-2xl">
@@ -177,63 +177,16 @@ The **CHULUX Slim** model offers great value at $39.99 with its space-saving des
             </div>
           ) : (
             <>
-              {displayMessages?.map(message => (
+              {displayMessages?.map((message, index) => (
                 <Message
                   key={message.id}
                   message={message}
                   onBuyProduct={handleBuyProduct}
                   onSendMessage={(text: string) => sendMessage({ text })}
+                  isStreaming={status !== 'ready' && index === displayMessages.length - 1}
                 />
               ))}
 
-              {/* Smart Nudges at the very bottom */}
-              {displayMessages.length > 0 && (() => {
-                const lastMessage = displayMessages[displayMessages.length - 1];
-                const productPart = lastMessage?.parts?.find(part => 
-                  part.type === 'tool-searchProducts' && 'output' in part && part.output?.products
-                ) as any;
-                
-                if (!productPart || !productPart.output?.products) return null;
-                
-                // Generate contextual nudges based on the actual products
-                const nudges = [];
-                const products = productPart.output.products;
-                
-                if (products.length > 0) {
-                  const firstProductName = products[0].name.toLowerCase();
-                  
-                  if (firstProductName.includes('headphone') || firstProductName.includes('bluetooth')) {
-                    nudges.push("Which has the best battery life?");
-                    nudges.push("Show me wireless options only");
-                    nudges.push("Compare noise cancellation features");
-                    nudges.push("Show me only options under $25");
-                  } else if (firstProductName.includes('coffee')) {
-                    nudges.push("Which has the best brewing features?");
-                    nudges.push("Show me single serve options only");
-                    nudges.push("Compare K-cup vs ground coffee compatibility");
-                    nudges.push("Show me only options under $35");
-                  } else {
-                    nudges.push("Which has the highest customer ratings?");
-                    nudges.push("Show me the most popular choice");
-                    nudges.push("What's the best value for money?");
-                    nudges.push("Help me compare the top 2 options");
-                  }
-                }
-                
-                return (
-                  <div className="mt-6 flex flex-wrap gap-2 pb-4">
-                    {nudges.map((nudge, i) => (
-                      <button
-                        key={i}
-                        onClick={() => sendMessage({ text: nudge })}
-                        className="px-3 py-2 bg-lime-50 hover:bg-lime-100 border border-lime-200 hover:border-lime-300 rounded-md text-sm text-lime-700 hover:text-lime-800 transition-colors"
-                      >
-                        {nudge}
-                      </button>
-                    ))}
-                  </div>
-                );
-              })()}
             </>
           )}
           {/* Scroll anchor */}

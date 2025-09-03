@@ -85,14 +85,12 @@ interface ProductGalleryProps {
   onSendMessage?: (message: string) => void;
 }
 
-interface SmartNudgeButtonsProps {
+export interface SmartNudgeButtonsProps {
   onSendMessage: (message: string) => void;
   products: ShoppingProduct[];
-  selectedProducts: Set<number>;
-  shortlistedProducts: Set<number>;
 }
 
-function SmartNudgeButtons({ onSendMessage, products, selectedProducts, shortlistedProducts }: SmartNudgeButtonsProps) {
+export function SmartNudgeButtons({ onSendMessage, products }: SmartNudgeButtonsProps) {
   // Generate contextual nudges based on the actual products shown
   const nudges = [];
   
@@ -234,17 +232,6 @@ function ProductGallery({ products, onBuyProduct, onSendMessage }: ProductGaller
           ))}
         </div>
 
-        {/* Smart Nudges - Inline below products */}
-        {onSendMessage && (
-          <div className="mt-4 flex flex-wrap gap-2 pb-4">
-            <SmartNudgeButtons 
-              onSendMessage={onSendMessage} 
-              products={products} 
-              selectedProducts={selectedProducts}
-              shortlistedProducts={shortlistedProducts}
-            />
-          </div>
-        )}
         
       </div>
 

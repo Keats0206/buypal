@@ -1,81 +1,7 @@
 import { UseChatToolsMessage } from '@/app/api/chat/route';
-import ProductGalleryMessage from './ProductGalleryMessage';
+import ProductGalleryMessage, { SmartNudgeButtons } from './ProductGalleryMessage';
 import ReactMarkdown from 'react-markdown';
 
-// Smart nudge component extracted from ProductGalleryMessage
-interface SmartNudgeButtonsProps {
-  onSendMessage: (message: string) => void;
-  products: any[];
-}
-
-function SmartNudgeButtons({ onSendMessage, products }: SmartNudgeButtonsProps) {
-  const nudges = [];
-  
-  if (products.length > 0) {
-    // Analyze product prices for budget suggestions
-    const prices = products.map(p => {
-      const priceStr = p.price.replace(/[$,]/g, '');
-      return parseFloat(priceStr) || 0;
-    }).filter(p => p > 0);
-    
-    if (prices.length > 0) {
-      const minPrice = Math.min(...prices);
-      const maxPrice = Math.max(...prices);
-      
-      // Budget-focused nudges
-      if (maxPrice > minPrice * 2) {
-        nudges.push(`Show me only options under $${Math.ceil(minPrice * 1.5)}`);
-      }
-      
-      if (maxPrice > 50) {
-        nudges.push("What's the most budget-friendly option?");
-      }
-    }
-    
-    // Product type specific nudges - detect from first product name
-    const firstProductName = products[0].name.toLowerCase();
-    
-    if (firstProductName.includes('coffee')) {
-      nudges.push("Which has the best brewing features?");
-      nudges.push("Show me single serve options only");
-      nudges.push("Compare K-cup vs ground coffee compatibility");
-    } else if (firstProductName.includes('headphone') || firstProductName.includes('earbuds')) {
-      nudges.push("Which has the best battery life?");
-      nudges.push("Show me wireless options only");
-      nudges.push("Compare noise cancellation features");
-    } else if (firstProductName.includes('laptop') || firstProductName.includes('computer')) {
-      nudges.push("Which has the best performance for the price?");
-      nudges.push("Show me gaming vs productivity options");
-      nudges.push("Compare storage and RAM specs");
-    } else {
-      // Generic product nudges
-      nudges.push("Which has the highest customer ratings?");
-      nudges.push("Show me the most popular choice");
-      nudges.push("What's the best value for money?");
-    }
-    
-    // Feature comparison nudges
-    if (products.length > 2) {
-      nudges.push("Help me compare the top 2 options");
-    }
-  }
-
-  if (nudges.length === 0) return null;
-
-  return (
-    <>
-      {nudges.slice(0, 4).map((nudge, i) => (
-        <button
-          key={i}
-          onClick={() => onSendMessage(nudge)}
-          className="px-3 py-2 bg-lime-50 hover:bg-lime-100 border border-lime-200 hover:border-lime-300 rounded-md text-sm text-lime-700 hover:text-lime-800 transition-colors"
-        >
-          {nudge}
-        </button>
-      ))}
-    </>
-  );
-}
 
 function CompareItemsMessage({ part }: { part: any }) {
   if (part.state === 'input-available') {
@@ -157,9 +83,10 @@ interface MessageProps {
   message: UseChatToolsMessage;
   onBuyProduct: (product: any) => void;
   onSendMessage?: (message: string) => void;
+  isStreaming?: boolean;
 }
 
-export default function Message({ message, onBuyProduct, onSendMessage }: MessageProps) {
+export default function Message({ message, onBuyProduct, onSendMessage, isStreaming = false }: MessageProps) {
   const renderMessageContent = () => {
     // Check if assistant message is empty or has no meaningful content
     if (message.role === 'assistant') {
@@ -191,10 +118,23 @@ export default function Message({ message, onBuyProduct, onSendMessage }: Messag
 
     // Find products for nudges
     const productPart = message.parts.find(part => 
-      part.type === 'tool-searchProducts' && part.output?.products
-    );
+      part.type === 'tool-searchProducts' && 'output' in part && part.output?.products
+    ) as any;
 
-    return parts;
+    return (
+      <>
+        {parts}
+        {/* Smart Nudges after all message content - only show when not streaming */}
+        {onSendMessage && productPart?.output?.products && message.role === 'assistant' && !isStreaming && (
+          <div className="mt-6 flex flex-wrap gap-2 mb-4">
+            <SmartNudgeButtons 
+              onSendMessage={onSendMessage} 
+              products={productPart.output.products} 
+            />
+          </div>
+        )}
+      </>
+    );
   };
 
   return (
