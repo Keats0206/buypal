@@ -8,7 +8,11 @@
       "Read(/var/folders/pt/jv9c5nyj2yb4jrsy65_jqlbc0000gn/T/TemporaryItems/NSIRD_screencaptureui_RIsKGL/**)",
       "Read(/var/folders/pt/jv9c5nyj2yb4jrsy65_jqlbc0000gn/T/TemporaryItems/NSIRD_screencaptureui_u6BLxt/**)",
       "Read(/var/folders/pt/jv9c5nyj2yb4jrsy65_jqlbc0000gn/T/TemporaryItems/NSIRD_screencaptureui_j1xg00/**)",
-      "Read(/var/folders/pt/jv9c5nyj2yb4jrsy65_jqlbc0000gn/T/TemporaryItems/NSIRD_screencaptureui_rn2Di3/**)"
+      "Read(/var/folders/pt/jv9c5nyj2yb4jrsy65_jqlbc0000gn/T/TemporaryItems/NSIRD_screencaptureui_rn2Di3/**)",
+      "Read(/var/folders/pt/jv9c5nyj2yb4jrsy65_jqlbc0000gn/T/TemporaryItems/NSIRD_screencaptureui_u7Oxnr/**)",
+      "Bash(npx tsc:*)",
+      "Bash(npm install:*)",
+      "Read(/var/folders/pt/jv9c5nyj2yb4jrsy65_jqlbc0000gn/T/TemporaryItems/NSIRD_screencaptureui_2tpt8B/**)"
     ],
     "deny": [],
     "ask": []

@@ -470,7 +470,7 @@ function CheckoutForm({ product, onClose, onOrderComplete }: { product: Shopping
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 px-4 py-2 bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
+                className="flex-1 bg-[#D7FC51] hover:bg-[#D7FC51]/80 text-black font-medium py-2 px-3 rounded-md transition-colors"
               >
                 {loading ? 'Processing...' : 'Continue to Payment'}
               </button>

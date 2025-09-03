@@ -1,6 +1,7 @@
 import { UseChatToolsMessage } from '@/app/api/chat/route';
 import ProductGalleryMessage, { SmartNudgeButtons } from './ProductGalleryMessage';
 import ReactMarkdown from 'react-markdown';
+import { motion } from 'framer-motion';
 
 
 function CompareItemsMessage({ part }: { part: any }) {
@@ -126,12 +127,17 @@ export default function Message({ message, onBuyProduct, onSendMessage, isStream
         {parts}
         {/* Smart Nudges after all message content - only show when not streaming */}
         {onSendMessage && productPart?.output?.products && message.role === 'assistant' && !isStreaming && (
-          <div className="mt-6 flex flex-wrap gap-2 mb-4">
+          <motion.div 
+            className="mt-6 flex flex-wrap gap-2 mb-4"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+          >
             <SmartNudgeButtons 
               onSendMessage={onSendMessage} 
               products={productPart.output.products} 
             />
-          </div>
+          </motion.div>
         )}
       </>
     );

@@ -12,6 +12,7 @@ import { UseChatToolsMessage } from '@/app/api/chat/route';
 import { useEffect, useRef, useState } from 'react';
 import { ShoppingProduct } from '@/lib/types';
 import { CheckoutIntent } from '@/lib/types';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Chat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -31,7 +32,7 @@ export default function Chat() {
       sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
     });
 
-  // Mock messages for development - cast as UseChatToolsMessage[]
+  // Mock messages for development
   const mockMessages: UseChatToolsMessage[] = [
     {
       id: '1',
@@ -43,7 +44,7 @@ export default function Chat() {
           text: 'coffee maker single serve'
         }
       ]
-    } as UseChatToolsMessage,
+    },
     {
       id: '2', 
       role: 'assistant' as const,
@@ -52,7 +53,7 @@ export default function Chat() {
         {
           type: 'tool-searchProducts',
           state: 'output-available',
-          input: { query: 'coffee maker single serve', maxResults: 3 },
+          input: { query: 'coffee maker single serve' },
           output: {
             state: 'ready',
             products: [
@@ -101,14 +102,21 @@ The **Amazon Basics** model is a fantastic budget choice at just $22.99 - it's s
 The **CHULUX Slim** model offers great value at $39.99 with its space-saving design that fits under most cabinets while still accommodating tall travel mugs. All three have solid 4.2-star ratings from hundreds of reviews.`
         }
       ]
-    } as UseChatToolsMessage
-  ];
+    }
+  ] as any;
 
   const displayMessages = useMockData ? mockMessages : messages;
+  const showWelcome = displayMessages.length === 0 || !displayMessages.some(m => m.role === 'user');
+
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    scrollToBottom();
+  }, [displayMessages]);
 
   const handleBuyProduct = (product: any) => {
     setCheckoutModal({
@@ -143,9 +151,9 @@ The **CHULUX Slim** model offers great value at $39.99 with its space-saving des
 
   return (
     <div className="flex flex-col h-full w-full mx-auto">
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-7xl mx-auto p-4 space-y-4 pb-32">
-          {displayMessages.length === 0 ? (
+      <div className="flex-1 overflow-y-auto pb-32">
+        <div className="max-w-7xl mx-auto p-4 space-y-4">
+          {showWelcome ? (
             <div className="flex flex-col items-center justify-center h-full text-center px-4">
               <div className="max-w-2xl">
                 <p className="text-lg text-gray-600 mb-8 leading-relaxed">
@@ -156,38 +164,51 @@ The **CHULUX Slim** model offers great value at $39.99 with its space-saving des
                   <h2 className="text-lg font-semibold text-gray-800 mb-4">Popular searches:</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {suggestedSearches.map((search, index) => (
-                      <button
+                      <motion.button
                         key={index}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ 
+                          duration: 0.2, 
+                          delay: index * 0.05,
+                          ease: "easeOut"
+                        }}
+                        whileHover={{ scale: 1.02, y: -2 }}
+                        whileTap={{ scale: 0.98 }}
                         onClick={() => sendMessage({ text: search })}
-                        className="p-3 text-left bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300 rounded-lg transition-all duration-200 text-sm text-gray-700 hover:text-gray-900"
+                        className="p-3 text-left bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300 rounded-lg transition-all duration-200 text-sm text-gray-700 hover:text-gray-900 shadow-sm hover:shadow-md"
                       >
                         {search}
-                      </button>
+                      </motion.button>
                     ))}
                   </div>
                 </div>
                 
-                {/* Chat input on welcome screen */}
-                <div className="bg-transparent border-t p-4 fixed bottom-0 w-full">
-                  <div className="max-w-5xl mx-auto d">
-                    <ChatInput status={status} onSubmit={text => sendMessage({ text })} />
-                  </div>
-                </div>
               </div>
             </div>
           ) : (
-            <>
+            <AnimatePresence mode="wait">
               {displayMessages?.map((message, index) => (
-                <Message
+                <motion.div
                   key={message.id}
-                  message={message}
-                  onBuyProduct={handleBuyProduct}
-                  onSendMessage={(text: string) => sendMessage({ text })}
-                  isStreaming={status !== 'ready' && index === displayMessages.length - 1}
-                />
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ 
+                    duration: 0.3, 
+                    delay: index * 0.1,
+                    ease: "easeOut"
+                  }}
+                  data-message-index={index}
+                >
+                  <Message
+                    message={message}
+                    onBuyProduct={handleBuyProduct}
+                    onSendMessage={(text: string) => sendMessage({ text })}
+                    isStreaming={status !== 'ready' && index === displayMessages.length - 1}
+                  />
+                </motion.div>
               ))}
-
-            </>
+            </AnimatePresence>
           )}
           {/* Scroll anchor */}
           <div ref={messagesEndRef} />
@@ -195,8 +216,8 @@ The **CHULUX Slim** model offers great value at $39.99 with its space-saving des
       </div>
 
       {/* Fixed chat input - always present */}
-      <div className="bg-transparent p-4 fixed bottom-0 w-full z-10">
-        <div className="max-w-5xl mx-auto drop-shadow-md">
+      <div className="bg-white/95 backdrop-blur-sm border-t p-4 fixed bottom-0 left-0 right-0 z-10">
+        <div className="max-w-5xl mx-auto">
           <ChatInput status={status} onSubmit={text => sendMessage({ text })} />
         </div>
       </div>
@@ -207,6 +228,7 @@ The **CHULUX Slim** model offers great value at $39.99 with its space-saving des
         onOrderComplete={handleOrderComplete}
         product={checkoutModal.product}
       />
+      
     </div>
   );
 }

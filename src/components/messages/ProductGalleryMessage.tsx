@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { ShoppingProduct } from '@/lib/types';
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 
 interface ProductGalleryMessageProps {
   part: {
@@ -148,13 +149,18 @@ export function SmartNudgeButtons({ onSendMessage, products }: SmartNudgeButtons
   return (
     <>
       {nudges.slice(0, 4).map((nudge, i) => (
-        <button
+        <motion.button
           key={i}
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.2, delay: i * 0.05 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           onClick={() => onSendMessage(nudge)}
           className="px-3 py-2 bg-lime-50 hover:bg-lime-100 border border-lime-200 hover:border-lime-300 rounded-md text-sm text-lime-700 hover:text-lime-800 transition-colors"
         >
           {nudge}
-        </button>
+        </motion.button>
       ))}
     </>
   );
@@ -192,7 +198,7 @@ function ProductGallery({ products, onBuyProduct, onSendMessage }: ProductGaller
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="space-y-6 mb-12">
         {/* Header */}
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-gray-900">
@@ -218,17 +224,27 @@ function ProductGallery({ products, onBuyProduct, onSendMessage }: ProductGaller
         {/* Product Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {products.map((product: ShoppingProduct, index: number) => (
-            <ProductCard
+            <motion.div
               key={index}
-              product={product}
-              index={index}
-              isSelected={selectedProducts.has(index)}
-              isShortlisted={shortlistedProducts.has(index)}
-              onSelect={() => toggleProductSelection(index)}
-              onToggleShortlist={() => toggleShortlist(index)}
-              onShowInsights={() => setSelectedProduct(product)}
-              onBuyProduct={onBuyProduct}
-            />
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ 
+                duration: 0.4, 
+                delay: index * 0.1,
+                ease: "easeOut"
+              }}
+            >
+              <ProductCard
+                product={product}
+                index={index}
+                isSelected={selectedProducts.has(index)}
+                isShortlisted={shortlistedProducts.has(index)}
+                onSelect={() => toggleProductSelection(index)}
+                onToggleShortlist={() => toggleShortlist(index)}
+                onShowInsights={() => setSelectedProduct(product)}
+                onBuyProduct={onBuyProduct}
+              />
+            </motion.div>
           ))}
         </div>
 
