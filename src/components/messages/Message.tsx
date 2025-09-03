@@ -77,7 +77,7 @@ export default function Message({ message, onBuyProduct }: MessageProps) {
   return (
     <div className="mb-4">
       <div className="font-semibold text-sm text-gray-600 mb-2">
-        {message.role === 'user' ? 'You' : 'Rye Powered Assistant'}
+        {message.role === 'user' ? 'You' : 'BuyPal'}
       </div>
       <div className={`p-4 ${
         message.role === 'assistant' ? 'bg-[#e6ffb7]' : 'bg-gray-50'

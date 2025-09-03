@@ -54,9 +54,9 @@ export default function Chat() {
   };
 
   return (
-    <div className="flex flex-col h-full max-w-6xl bg-white">
+    <div className="flex flex-col h-full w-screen">
       {/* Messages Area - Scrollable */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 mb-32">
         {messages?.map(message => (
           <Message
             key={message.id}
@@ -68,7 +68,7 @@ export default function Chat() {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="border-t bg-white p-6">
+      <div className="bg-white fixed z-10 w-screen bottom-0 left-0 border-t p-6">
         <div className="max-w-5xl mx-auto">
           <ChatInput status={status} onSubmit={text => sendMessage({ text })} />
         </div>

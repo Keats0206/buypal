@@ -2,7 +2,7 @@ import Chat from "@/components/Chat";
 
 export default function Home() {
   return (
-    <div className="relative flex h-[calc(100vh_-_theme(spacing.16))] overflow-hidden pb-10 flex-col">
+    <div className="relative h-screen flex flex-col mx-auto">
       <Chat />
     </div>
   );

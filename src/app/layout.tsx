@@ -10,7 +10,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Header />
-        <main className="bg-muted/50 flex flex-1 flex-col pt-16 min-h-[calc(100vh-4rem)]">
+        <main className="bg-muted/50 flex flex-1 flex-col">
           {children}
         </main>
       </body>

@@ -23,7 +23,7 @@ export async function POST(req: Request) {
   const { messages } = await req.json();
 
   const result = streamText({
-    model: openai('gpt-5'),
+    model: openai(process.env.OPENAI_MODEL ?? 'gpt-4o-mini'),
     system: `
     You are a helpful AI assistant that can search for products on Amazon and assist with various tasks.
 
