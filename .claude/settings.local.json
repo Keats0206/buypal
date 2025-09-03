@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx vercel:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm run lint)",
+      "Read(/var/folders/pt/jv9c5nyj2yb4jrsy65_jqlbc0000gn/T/TemporaryItems/NSIRD_screencaptureui_RIsKGL/**)",
+      "Read(/var/folders/pt/jv9c5nyj2yb4jrsy65_jqlbc0000gn/T/TemporaryItems/NSIRD_screencaptureui_u6BLxt/**)",
+      "Read(/var/folders/pt/jv9c5nyj2yb4jrsy65_jqlbc0000gn/T/TemporaryItems/NSIRD_screencaptureui_j1xg00/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
